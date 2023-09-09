@@ -11,7 +11,13 @@ const existEmail = async (email = '') => {
   if (existEmail) throw new Error(`${email} must be unique`);
 };
 
+const existUserId = async id => {
+  const existUserID = await User.findById(id);
+  if (!existUserID) throw new Error(`User with id:${id} dont exist`);
+};
+
 module.exports = {
   isValidRol,
   existEmail,
+  existUserId,
 };
