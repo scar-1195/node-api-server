@@ -2,6 +2,7 @@ const { request, response } = require('express');
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 const { generateJwt } = require('../helpers/generate-jwt');
+const { googleVerify } = require('../helpers/google-verify');
 
 const login = async (req = request, res = response) => {
   const { email, password } = req.body;
@@ -47,6 +48,44 @@ const login = async (req = request, res = response) => {
   }
 };
 
+const googleSingIn = async (req = request, res = response) => {
+  const { id_token } = req.body;
+
+  try {
+    const { name, email, img } = await googleVerify(id_token);
+
+    let user = User.findOne({ email });
+
+    //*TODO: if user exist validation 
+    //*TODO: if user status validation 
+
+    const data = {
+      name,
+      email,
+      password: ':p',
+      img,
+      google: true,
+      rol: 'USER',
+    };
+
+    user = new User(data);
+    await user.save();
+
+    const token = await generateJwt(user.id);
+
+    res.json({
+      user,
+      token,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      msg: 'Token can not verify',
+    });
+  }
+};
+
 module.exports = {
   login,
+  googleSingIn,
 };
