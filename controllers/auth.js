@@ -54,22 +54,21 @@ const googleSingIn = async (req = request, res = response) => {
   try {
     const { name, email, img } = await googleVerify(id_token);
 
-    let user = User.findOne({ email });
+    let user = await User.findOne({ email });
 
-    //*TODO: if user exist validation 
-    //*TODO: if user status validation 
+    if (!user) {
+      const data = {
+        name,
+        email,
+        password: ':p',
+        img,
+        google: true,
+        rol: 'USER',
+      };
 
-    const data = {
-      name,
-      email,
-      password: ':p',
-      img,
-      google: true,
-      rol: 'USER',
-    };
-
-    user = new User(data);
-    await user.save();
+      user = new User(data);
+      await user.save();
+    }
 
     const token = await generateJwt(user.id);
 
@@ -78,6 +77,7 @@ const googleSingIn = async (req = request, res = response) => {
       token,
     });
   } catch (error) {
+    console.log(error);
     res.status(400).json({
       success: false,
       msg: 'Token can not verify',
